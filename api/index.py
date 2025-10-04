@@ -40,3 +40,6 @@ def telemetry():
         }
 
     return jsonify(results)
+
+
+
