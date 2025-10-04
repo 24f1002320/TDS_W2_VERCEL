@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch: # Allows manual run for easy testing
+  workflow_dispatch:
 
 jobs:
   build:
@@ -12,3 +12,40 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Prime the cache and Restore dependencies
+        id: cache-step # IMPORTANT: Give the step an ID to reference its output
+        uses: actions/cache@v4
+        with:
+          # Assuming you use a virtual environment named .venv/
+          path: .venv
+          key: cache-2993d53-${{ hashFiles('requirements.txt') }}
+          # The key you requested is the static part. 
+          # The hash of requirements.txt ensures the cache is updated if dependencies change.
+          restore-keys: |
+            cache-2993d53-
+
+      - name: prime-cache-2993d53 # The required step name
+        run: |
+          # Use the 'cache-hit' output from the previous step to echo the result
+          if [ "${{ steps.cache-step.outputs.cache-hit }}" == "true" ]; then
+            echo "Cache hit occurred!"
+          else
+            echo "Cache miss occurred. Installing dependencies..."
+            # Since this is a miss, install dependencies to populate the cache for the next run
+            python -m venv .venv
+            source .venv/bin/activate
+            pip install -r requirements.txt
+          fi
+          
+      - name: Run Tests (Example Step)
+        run: |
+          # Activate venv if it was created/restored
+          source .venv/bin/activate
+          echo "Dependencies are ready. Proceeding with CI/CD..."
+          # Replace with your actual build/test commands
